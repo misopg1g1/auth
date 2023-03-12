@@ -1,0 +1,9 @@
+botocore
+requests
+cors
+cryptography
+cffi
+fastapi
+uvicorn
+pydantic
+pytest

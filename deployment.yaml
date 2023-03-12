@@ -1,0 +1,66 @@
+# AGENDA APP
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${REPO_NAME}-app
+  namespace: ${BRANCH_NAME}
+  labels:
+    app: ${REPO_NAME}-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${REPO_NAME}-app
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: ${REPO_NAME}-app
+    spec:
+      containers:
+        - name: ${REPO_NAME}-app
+          image: ${REGISTRY_HOST}/${REGISTRY_SPACE}/${REPO_NAME}-${BRANCH_NAME}:latest
+          ports:
+            - containerPort: 3001
+          imagePullPolicy: Always
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+              scheme: HTTP
+            initialDelaySeconds: 10
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 1
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 10
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 1
+      imagePullSecrets:
+        - name: regcred
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ${REPO_NAME}-svc
+  namespace: ${BRANCH_NAME}
+spec:
+  type: ClusterIP
+  selector:
+    app: ${REPO_NAME}-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3001
