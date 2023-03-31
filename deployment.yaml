@@ -25,6 +25,12 @@ spec:
       containers:
         - name: ${REPO_NAME}-app
           image: ${REGISTRY_HOST}/${REGISTRY_SPACE}/${REPO_NAME}-${BRANCH_NAME}:latest
+          env:
+            - name: ENCRYPTION_KEY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: encryption
+                  key: ENCRYPTION_KEY_SECRET
           ports:
             - containerPort: 3001
           imagePullPolicy: Always

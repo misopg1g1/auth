@@ -1,0 +1,114 @@
+name: CICD
+
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configurar Python 3.10
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+
+      - name: Actualizar pip
+        run: |
+          python -m pip install --upgrade pip
+      - name: Verificar archivo requirements.txt
+        run: |
+          if [ ! -f requirements.txt ]; then
+            echo "requirements.txt no encontrado. No se ejecutará la acción."
+            exit 0
+          fi
+      - name: Instalar dependencias
+        run: |
+          python -m pip install -r requirements.txt
+
+      - name: Correr tests
+        run: |
+          pytest
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY_USERNAME: ${{secrets.REGISTRY_USERNAME}}
+      REGISTRY_PASSWORD: ${{secrets.REGISTRY_PASSWORD}}
+      REGISTRY_HOST: ${{ secrets.REGISTRY_HOST }}
+      REGISTRY_SPACE: ${{ secrets.REGISTRY_SPACE }}
+      REPO_NAME: ${{ github.event.repository.name }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Verificar archivo Dockerfile
+        run: |
+          if [ ! -f Dockerfile ]; then
+            echo "Dockerfile no encontrado. No se ejecutará la acción."
+            exit 0
+          fi
+      - name: Autenticarse en el registry
+        run: echo $REGISTRY_PASSWORD | docker login $REGISTRY_HOST --username $REGISTRY_USERNAME --password $REGISTRY_PASSWORD
+      - name: Construir y Subir imagen de docker
+        run: |
+          BRANCH_NAME=$(basename $GITHUB_REF)
+          IMAGE_VERSION=$(date +%s)
+          sed -e "s~\${REPO_NAME}~$REPO_NAME~g" \
+          -e "s~\${BRANCH_NAME}~${BRANCH_NAME}~g" \
+          -e "s~\${REGISTRY_SPACE}~$REGISTRY_SPACE~g" \
+          -e "s~\${IMAGE_VERSION}~${IMAGE_VERSION}~g" \
+          -e "s~\${REGISTRY_HOST}~$REGISTRY_HOST~g" \
+          docker_image_bash.sh > new_docker_image_bash.sh
+          bash new_docker_image_bash.sh
+          rm -rf new_docker_image_bash.sh
+          echo "La imagen $REGISTRY_HOST/$REGISTRY_SPACE/${repo_name}-${BRANCH_NAME}:${IMAGE_VERSION} se construyo y se subió exitosamente"
+          echo "La imagen $REGISTRY_HOST/$REGISTRY_SPACE/${repo_name}-${BRANCH_NAME}:latest se construyo y se subió exitosamente"
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      REPO_NAME: ${{ github.event.repository.name }}
+      REGISTRY_SPACE: ${{ secrets.REGISTRY_SPACE }}
+      REGISTRY_HOST: ${{ secrets.REGISTRY_HOST }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Configurar kubectl
+        uses: tale/kubectl-action@v1
+        with:
+          base64-kube-config: ${{ secrets.BASE64_KUBECONFIG }}
+      - name: Verificar archivo deployment.yaml
+        run: |
+          if [ ! -f deployment.yaml ]; then
+            echo "deployment.yaml no encontrado. No se ejecutará la acción."
+            exit 0
+          fi
+      - name: Establecer variables del deployment
+        run: |
+          BRANCH_NAME=$(basename $GITHUB_REF)
+          sed -e "s~\${REPO_NAME}~$REPO_NAME~g" \
+          -e "s~\${BRANCH_NAME}~${BRANCH_NAME}~g" \
+          -e "s~\${REGISTRY_SPACE}~$REGISTRY_SPACE~g" \
+          -e "s~\${REGISTRY_HOST}~$REGISTRY_HOST~g" \
+          deployment.yaml > new_deployment.yaml
+      - name: desplegar servicio
+        run: |
+          BRANCH_NAME=$(basename $GITHUB_REF)
+          kubectl apply -f new_deployment.yaml
+          kubectl rollout restart deployment ${{env.REPO_NAME}}-app -n ${BRANCH_NAME}
+      - name: Eliminar config file y new_deployment
+        run: |
+          BRANCH_NAME=$(basename $GITHUB_REF)
+          echo "Se desplegaron la aplicación y el servicio en la rama ${BRANCH_NAME} de manera exitosa"
+          rm -rf $HOME/.kube/config
+          rm -rf new_deployment.yaml
