@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - production
-      - staging
 
 jobs:
   test:
@@ -45,6 +44,9 @@ jobs:
     env:
       REGISTRY_USERNAME: ${{secrets.REGISTRY_USERNAME}}
       REGISTRY_PASSWORD: ${{secrets.REGISTRY_PASSWORD}}
+      REGISTRY_HOST: ${{ secrets.REGISTRY_HOST }}
+      REGISTRY_SPACE: ${{ secrets.REGISTRY_SPACE }}
+      REPO_NAME: ${{ github.event.repository.name }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -56,14 +58,8 @@ jobs:
             exit 0
           fi
       - name: Autenticarse en el registry
-        run: |
-          docker login --username $REGISTRY_USERNAME --password $REGISTRY_PASSWORD misoregistry.edgarluna.dev
+        run: echo $REGISTRY_PASSWORD | docker login $REGISTRY_HOST --username $REGISTRY_USERNAME --password $REGISTRY_PASSWORD
       - name: Construir y Subir imagen de docker
-        env:
-          REPO_NAME: ${{ github.event.repository.name }}
-          REGISTRY_SPACE: ${{ secrets.REGISTRY_SPACE }}
-          REGISTRY_HOST: ${{ secrets.REGISTRY_HOST }}
-
         run: |
           BRANCH_NAME=$(basename $GITHUB_REF)
           IMAGE_VERSION=$(date +%s)
