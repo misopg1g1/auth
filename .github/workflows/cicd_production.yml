@@ -58,7 +58,7 @@ jobs:
             exit 0
           fi
       - name: Autenticarse en el registry
-        run: echo $REGISTRY_PASSWORD | docker login $REGISTRY_HOST --username $REGISTRY_USERNAME --password $REGISTRY_PASSWORD
+        run: echo $REGISTRY_PASSWORD | docker login $REGISTRY_HOST -u $REGISTRY_USERNAME --password-stdin
       - name: Construir y Subir imagen de docker
         run: |
           BRANCH_NAME=$(basename $GITHUB_REF)
