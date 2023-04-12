@@ -8,3 +8,5 @@ uvicorn
 pydantic
 pytest
 pytest-cov
+SQLAlchemy
+psycopg2-binary
