@@ -1,1 +1,2 @@
-from models.test_model import TestModel
+from .user_model import *
+from .base_model import *
