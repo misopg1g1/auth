@@ -3,6 +3,7 @@ import os
 
 class AppConfigValues:
     ENCRYPTION_KEY_SECRET = os.getenv("ENCRYPTION_KEY_SECRET", "ASuJ-vtjlvAuUdFDTdeMOHoCTjlS_dipLtp6_7rQ_kw=")
+    JWT_SECRET = os.getenv("JWT_SECRET", "secret")
     DB_HOST = os.getenv("DB_HOST", "localhost")
     DB_NAME = os.getenv("DB_NAME", "postgres")
     DB_PORT = os.getenv("DB_PORT", "5432")
