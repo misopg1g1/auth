@@ -26,8 +26,8 @@ spec:
         - name: ${REPO_NAME}-app
           image: ${REGISTRY_HOST}/${REGISTRY_SPACE}/${REPO_NAME}-${BRANCH_NAME}:latest
           envFrom:
-            secretRef:
-              name: auth-secrets
+            - secretRef:
+                name: auth-secrets
           ports:
             - containerPort: 3001
           imagePullPolicy: Always
