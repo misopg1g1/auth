@@ -19,7 +19,7 @@ class User(SQLBaseModel):
     __tablename__ = 'users'
     user = Column(String, unique=True)
     password = Column(String)
-    verified = Column(Boolean, default=lambda: False)
+    verified = Column(Boolean, default=lambda: True)
     enabled = Column(Boolean, default=lambda: True)
     role = Column(String)
 
