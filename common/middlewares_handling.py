@@ -23,7 +23,8 @@ def decryptor_middleware(app: FastAPI):
         send = request._send
         if bytes_body := receive.get("body"):
             raw_json_body = json.loads(bytes_body)
-            clean_json_body = dict(filter(lambda kv: kv[0] not in ["hash"], json.loads(bytes_body).items()))
+            clean_json_body = dict(sorted(filter(lambda kv: kv[0] not in ["hash"], json.loads(bytes_body).items()),
+                                          key=lambda kv: kv[0]))
             try:
                 fernet = Fernet(AppConfigValues.ENCRYPTION_KEY_SECRET.encode())
                 if not fernet.decrypt(raw_json_body.get('hash')).decode() == hashlib.md5(
