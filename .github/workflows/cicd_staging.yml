@@ -32,7 +32,7 @@ jobs:
 
       - name: Correr tests
         run: |
-          pytest --cov=. --cov-report xml
+          bash run_test.sh
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:

@@ -11,4 +11,5 @@ class AppConfigValues:
     DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
     DB_DIALECT = os.getenv("DB_DIALECT", "postgresql")
     DB_DRIVER = os.getenv("DB_DRIVER", "psycopg2")
-    DB_URL = f"{DB_DIALECT}+{DB_DRIVER}://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    DB_URL = os.getenv("DB_URL",
+                       f"{DB_DIALECT}+{DB_DRIVER}://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}")
