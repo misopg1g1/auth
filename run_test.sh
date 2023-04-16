@@ -1,0 +1,1 @@
+DB_URL=sqlite:///tests/testdb.db PYTHONPATH=.:$PYTHONPATH pytest --cov=. --cov-report xml
