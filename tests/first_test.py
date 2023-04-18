@@ -2,6 +2,7 @@ import schemas
 import api
 import config
 import models
+import helpers
 
 from config.db_client import db_client
 
@@ -24,7 +25,7 @@ class TestClassFirstTest:
         models.User.push_object(user_instance)
         dict_login_instance_schema: dict = dict(sorted(login_instance_schema.dict().items(), key=lambda kv: kv[0]))
         dict_login_instance_schema['password'] = 'password1'
-        raw_hash = hashlib.md5(json.dumps(dict_login_instance_schema).encode()).hexdigest()
+        raw_hash = helpers.get_hash(dict_login_instance_schema)
         dict_login_instance_schema['hash'] = Fernet(config.AppConfigValues.ENCRYPTION_KEY_SECRET).encrypt(
             raw_hash.encode()).decode()
 
@@ -41,7 +42,7 @@ class TestClassFirstTest:
         models.User.push_object(user_instance)
         dict_login_instance_schema: dict = dict(sorted(login_instance_schema.dict().items(), key=lambda kv: kv[0]))
         dict_login_instance_schema['password'] = 'password2'
-        raw_hash = hashlib.md5(json.dumps(dict_login_instance_schema).encode()).hexdigest()
+        raw_hash = helpers.get_hash(dict_login_instance_schema)
         dict_login_instance_schema['hash'] = Fernet(config.AppConfigValues.ENCRYPTION_KEY_SECRET).encrypt(
             raw_hash.encode()).decode()
 
@@ -61,7 +62,7 @@ class TestClassFirstTest:
         raw_hash = hashlib.md5(json.dumps(dict_login_instance_schema).encode()).hexdigest()
         dict_login_instance_schema['hash'] = Fernet(config.AppConfigValues.ENCRYPTION_KEY_SECRET).encrypt(
             raw_hash.encode()).decode()
-        
+
         dict_login_instance_schema['user'] = 'user2'
         resp = client.post("/session/login", json=dict_login_instance_schema)
-        assert resp.status_code == 403      
+        assert resp.status_code == 403
