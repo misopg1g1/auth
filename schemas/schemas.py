@@ -19,7 +19,7 @@ class LoginUserSchema(pydantic.BaseModel):
 
         schema_extra = {
             "example": {
-                'hash': 'gAAAAABkOG6Kxb78NW55YIduu9eoGM7jH6ElVtRdOU1U2M4fLwZhMZeG6xGHMMWjjVrKMkfyjFz8jxbWLoIn7AwxahRqvadfq60EH7vWLewavMypKKf1gU8vZr0PW6Fzx2k-2nUMg3hZ',
+                'hash': 'gAAAAABkPv5wM9DiujiucuuKmrgtpG2FFi2v81lmzT4qX6yDsVqdYIQWM2RPlTUFSXiOATggPVC4XjSx7cHgJGXBtEIYdMWtjmseyrSno0PiNfJeZw9XW8snoOrwg7YruNf8RJL4CFGH',
                 'user': 'user1',
                 'password': 'password1',
             }
@@ -35,7 +35,7 @@ class CreateUserSchema(LoginUserSchema, UserOperationSchema):
 
         schema_extra = {
             "example": {
-                'hash': 'gAAAAABkOFpJfAAGZ0u16F5t5zlgstkWSYvtbfsCuWSouUKHMlCN2-VkU-BYyX9JPNq5sb5SkxwL2HZdnhupO6bZUXqQBXf5sHrVnqDkqqUtsQnHdLK_tO0JKmho6T8CQhOzOMj5EiaK',
+                'hash': 'gAAAAABkPv6ar3w3MmJ4BwxRxfWupoj-9XXX5Nfr4T8jza8p9BxXGnNHvmy4SwkumgwBWI9IFt3REOhr0id2u9MyxQszzvh5jLvqCbdjdMdO45UoSxkqmFxTtCpSqKzIFBfDKK4vwTgr',
                 'user': 'user2',
                 'password': 'password2',
                 'verify_password': 'password2',
