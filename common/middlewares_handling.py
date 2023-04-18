@@ -23,12 +23,12 @@ def decryptor_middleware(app: FastAPI):
         send = request._send
         if bytes_body := receive.get("body"):
             raw_json_body = json.loads(bytes_body)
-            clean_json_body = dict(sorted(filter(lambda kv: kv[0] not in ["hash"], json.loads(bytes_body).items()),
-                                          key=lambda kv: kv[0]))
+            clean_json_body = dict(filter(lambda kv: kv[0] not in ["hash"], json.loads(bytes_body).items()))
             try:
                 fernet = Fernet(AppConfigValues.ENCRYPTION_KEY_SECRET.encode())
                 if not fernet.decrypt(raw_json_body.get('hash')).decode() == hashlib.md5(
-                        json.dumps(clean_json_body).encode()).hexdigest():
+                        json.dumps(clean_json_body, separators=(",", ":"), sort_keys=True,
+                                   ensure_ascii=False).encode()).hexdigest():
                     return JSONResponse(status_code=403,
                                         content={"error": ResponseMessagesValues.NO_MATCHING_HATCH})
             except (InvalidToken, ValueError):
