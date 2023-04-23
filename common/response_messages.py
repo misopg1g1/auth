@@ -22,3 +22,4 @@ class ResponseMessagesValues:
     INVALID_ENCRYPTION_KEY = "La llave de verificación del cuerpo no es valida"
     GENERAL_ENCRYPTION_ERROR_MSG = "Ocurrio un error al verificar el cuerpo del mensaje"
     GENERAL_REQUESTS_FAILURE_MESSAGE = "El servicio no se encuentra disponible por el momento. Porfavor intente mas tarde."
+    DIFFERENT_ROLE = "El rol del usuario no coincide con el que viene por parametro."

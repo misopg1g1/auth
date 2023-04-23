@@ -2,13 +2,14 @@ import typing
 import common
 import models
 import helpers
+import enums
 import schemas
 
 from schemas import LoginUserSchema, CreateUserSchema
 
 import json
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 
 session_router = APIRouter(prefix="/session", tags=["Session"])
 
@@ -37,6 +38,21 @@ def refresh_token(token: str = Depends(common.token_schema)):
             "access_token": helpers.generate_token(json.loads(user_instance.json(exclude={'password'}))),
             "token_type": "bearer"
         }
+    else:
+        raise common.error_handling.ObjectNotFound(common.response_messages.ResponseMessagesValues.OBJECT_NOT_FOUND)
+
+
+@session_router.get("/verify_role")
+def verify_role(role: enums.RoleEnum, response: Response, token: str = Depends(common.token_schema)):
+    token_payload = helpers.decode_token(token)
+    user_instance: typing.Optional[models.User]
+    if (user_id := token_payload.get("id", None)) and \
+            (user_instance := models.User.query_by_kwargs(first_match=True, id=user_id)):
+        user_instance.verify_identity(token)
+        if user_instance.role == role.value:
+            response.status_code = 204
+        else:
+            raise common.error_handling.Forbidden(common.response_messages.ResponseMessagesValues.DIFFERENT_ROLE)
     else:
         raise common.error_handling.ObjectNotFound(common.response_messages.ResponseMessagesValues.OBJECT_NOT_FOUND)
 
