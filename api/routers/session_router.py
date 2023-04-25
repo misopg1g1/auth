@@ -42,14 +42,26 @@ def refresh_token(token: str = Depends(common.token_schema)):
         raise common.error_handling.ObjectNotFound(common.response_messages.ResponseMessagesValues.OBJECT_NOT_FOUND)
 
 
-@session_router.get("/verify_role")
-def verify_role(role: enums.RoleEnum, response: Response, token: str = Depends(common.token_schema)):
+@session_router.get("/verify_token")
+def verify_token(resp: Response, token: str = Depends(common.token_schema)):
     token_payload = helpers.decode_token(token)
     user_instance: typing.Optional[models.User]
     if (user_id := token_payload.get("id", None)) and \
             (user_instance := models.User.query_by_kwargs(first_match=True, id=user_id)):
         user_instance.verify_identity(token)
-        if user_instance.role == role.value:
+        resp.status_code = 204
+    else:
+        raise common.error_handling.ObjectNotFound(common.response_messages.ResponseMessagesValues.OBJECT_NOT_FOUND)
+
+
+@session_router.post("/verify_roles")
+def verify_roles(roles_schema: schemas.RolesSchema, response: Response, token: str = Depends(common.token_schema)):
+    token_payload = helpers.decode_token(token)
+    user_instance: typing.Optional[models.User]
+    if (user_id := token_payload.get("id", None)) and \
+            (user_instance := models.User.query_by_kwargs(first_match=True, id=user_id)):
+        user_instance.verify_identity(token)
+        if user_instance.role in list(map(lambda r: r, roles_schema.roles)):
             response.status_code = 204
         else:
             raise common.error_handling.Forbidden(common.response_messages.ResponseMessagesValues.DIFFERENT_ROLE)

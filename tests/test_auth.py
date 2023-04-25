@@ -168,7 +168,7 @@ class TestClassRefreshToken:
         assert resp_msg == token
 
 
-class TestClassVerifyRole:
+class TestClassVerifyRoles:
     def test_success(self):
         client = TestClient(api.create_app())
         db_client.session.query(models.User).delete()
@@ -185,7 +185,9 @@ class TestClassVerifyRole:
             "Content-Type": "application/json",
             "Authorization": f"Bearer {token}"
         }
-        resp = client.get("/session/verify_role", params={"role":"ADMIN"}, headers=headers)
+        payload = {"roles": ["ADMIN"]}
+        payload["hash"] = helpers.encrypt_hash(helpers.get_hash(payload))
+        resp = client.post("/session/verify_roles", json=payload, headers=headers)
         assert resp.status_code == 204
 
     def test_forbidden(self):
@@ -205,5 +207,49 @@ class TestClassVerifyRole:
             "Content-Type": "application/json",
             "Authorization": f"Bearer {token}"
         }
-        resp = client.get("/session/verify_role", params={"role": "SELLER"}, headers=headers)
+        payload = {"roles": ["SELLER"]}
+        payload["hash"] = helpers.encrypt_hash(helpers.get_hash(payload))
+        resp = client.post("/session/verify_roles", json=payload, headers=headers)
         assert resp.status_code == 403
+
+
+class TestClassVerifyToken:
+    def test_success(self):
+        client = TestClient(api.create_app())
+        db_client.session.query(models.User).delete()
+        db_client.session.commit()
+
+        existing_user_instance = models.User(user='user1',
+                                             password=bcrypt.hashpw('password1'.encode(), bcrypt.gensalt(10)).decode(),
+                                             role='ADMIN')
+        models.User.push_object(existing_user_instance)
+        existing_user_instance = models.User.query_by_kwargs(True, user="user1")
+        token = helpers.generate_token(json.loads(existing_user_instance.json(exclude={'password'})))
+        headers = {
+            "accept": "application/json",
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}"
+        }
+        resp = client.get("/session/verify_token", headers=headers)
+        assert resp.status_code == 204
+
+    def test_unauthorized(self):
+        client = TestClient(api.create_app())
+        db_client.session.query(models.User).delete()
+        db_client.session.commit()
+
+        existing_user_instance = models.User(user='user1',
+                                             password=bcrypt.hashpw('password1'.encode(), bcrypt.gensalt(10)).decode(),
+                                             role='ADMIN')
+        models.User.push_object(existing_user_instance)
+        existing_user_instance = models.User.query_by_kwargs(True, user="user1")
+        dict_existing_user_instance = json.loads(existing_user_instance.json(exclude={'password'}))
+        dict_existing_user_instance["role"] = "SELLER"
+        token = helpers.generate_token(dict_existing_user_instance)
+        headers = {
+            "accept": "application/json",
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}"
+        }
+        resp = client.get("/session/verify_token", headers=headers)
+        assert resp.status_code == 401

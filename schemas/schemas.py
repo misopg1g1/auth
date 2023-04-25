@@ -1,6 +1,7 @@
 import datetime
 import typing
 
+import enums
 from enums import RoleEnum
 
 import pydantic
@@ -67,4 +68,19 @@ class LoginResponseSchema(pydantic.BaseModel):
     data: UserSchemaWithoutPassword
 
 
-__all__ = ['LoginUserSchema', 'CreateUserSchema', 'UserSchema', 'LoginResponseSchema']
+class RolesSchema(pydantic.BaseModel):
+    roles: typing.List[enums.RoleEnum] = pydantic.Field(...)
+
+    class Config:
+        use_enum_values = True
+
+        schema_extra = {
+            "example": {
+                'hash': 'gAAAAABkR_Z1ffjEC1hjq679AEnplEVbs_ozfOtmv4wjkzmCFKaLM8zbQKRAZvtIKR6LSuZGV69oRl5QvWonp-VcwkTKAyusm14-H3xDrhUZs2JKaNvfJFZER9MJOB62LmakgzmiF3Bv',
+                'roles': ['ADMIN', 'SELLER']
+
+            }
+        }
+
+
+__all__ = ['LoginUserSchema', 'CreateUserSchema', 'UserSchema', 'LoginResponseSchema', 'RolesSchema']
