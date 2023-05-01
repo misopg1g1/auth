@@ -1,8 +1,8 @@
 class ResponseMessagesValues:
     USER_SUCCESSFULLY_CREATED = "El usuario fue creado exitosamente."
     USER_ALREADY_EXIST = "El usuario ya existe."
-    OBJECT_ALREADY_EXIST = "Ya existe un objeto con este ID."
-    OBJECT_NOT_FOUND = "El objeto no fue encontrado."
+    OBJECT_ALREADY_EXIST = "Ya existe un usuario con este ID."
+    OBJECT_NOT_FOUND = "El usuario no fue encontrado."
     MISSING_USER_MODEL_INFO = "La información suministrada no es suficiente realizar ésta acción."
     BD_CONNECTION_ISSUE = "Ha ocurrido un error al intentar interactuar con la base de datos."
     CACHING_CONNECTION_ISSUE = "Ha ocurrido un error al intentar interactuar con el servicio de cache."
@@ -22,3 +22,4 @@ class ResponseMessagesValues:
     INVALID_ENCRYPTION_KEY = "La llave de verificación del cuerpo no es valida"
     GENERAL_ENCRYPTION_ERROR_MSG = "Ocurrio un error al verificar el cuerpo del mensaje"
     GENERAL_REQUESTS_FAILURE_MESSAGE = "El servicio no se encuentra disponible por el momento. Porfavor intente mas tarde."
+    DIFFERENT_ROLE = "El rol del usuario no coincide con los permitidos."
