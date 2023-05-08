@@ -34,7 +34,7 @@ def manage_db_exceptions(method):
 
 
 class SQLBaseModel(DeclarativeBase):
-    id = Column(String, primary_key=True, unique=True)
+    id = Column(String, primary_key=True, unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now(), nullable=True)
 
