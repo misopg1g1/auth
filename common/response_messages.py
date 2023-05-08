@@ -23,3 +23,4 @@ class ResponseMessagesValues:
     GENERAL_ENCRYPTION_ERROR_MSG = "Ocurrio un error al verificar el cuerpo del mensaje"
     GENERAL_REQUESTS_FAILURE_MESSAGE = "El servicio no se encuentra disponible por el momento. Porfavor intente mas tarde."
     DIFFERENT_ROLE = "El rol del usuario no coincide con los permitidos."
+    CANNOT_DELETE_SAME_USER = "El usuario autenticado no puede eliminarse a si mismo."

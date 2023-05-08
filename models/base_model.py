@@ -1,11 +1,11 @@
 from common import error_handling, ResponseMessagesValues
 from config.db_client import db_client
 
-import typing
-
-from sqlalchemy import Column, Integer, DateTime, func
+from sqlalchemy import Column, DateTime, func, String
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.exc import IntegrityError
+
+import uuid
 
 
 def expire_all_objects(method):
@@ -34,20 +34,18 @@ def manage_db_exceptions(method):
 
 
 class SQLBaseModel(DeclarativeBase):
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String, primary_key=True, unique=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now(), nullable=True)
 
     @classmethod
     @manage_db_exceptions
-    @expire_all_objects
     def push_objects(cls, objects):
         db_client.session.add_all(objects)
         db_client.session.commit()
 
     @classmethod
     @manage_db_exceptions
-    @expire_all_objects
     def push_object(cls, obj):
         db_client.session.add(obj)
         db_client.session.commit()
@@ -75,6 +73,19 @@ class SQLBaseModel(DeclarativeBase):
             for key, value in new_values.items():
                 obj.__setattr__(key, value)
         db_client.session.commit()
+
+    @classmethod
+    @manage_db_exceptions
+    @expire_all_objects
+    def delete_by_kwargs(cls, first_match: bool = False, **kwargs):
+        query = db_client.session.query(cls).filter_by(**kwargs)
+        if not first_match:
+            for match in query.all():
+                db_client.session.delete(match)
+        else:
+            db_client.session.delete(query.first())
+        db_client.session.commit()
+        return True
 
     def dict(self, *args, **kwargs):
         return dict(self.__dict__)

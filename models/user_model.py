@@ -9,7 +9,6 @@ from models.base_model import SQLBaseModel
 from enums import RoleEnum
 
 import bcrypt
-import enum
 import typing
 
 from sqlalchemy import Column, String, Boolean
