@@ -6,6 +6,7 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.exc import IntegrityError
 
 import uuid
+import copy
 
 
 def expire_all_objects(method):
@@ -22,9 +23,9 @@ def manage_db_exceptions(method):
         try:
             if response := method(*args, **kwargs):
                 return response
-        except IntegrityError:
+        except IntegrityError as e:
             db_client.session.rollback()
-            raise error_handling.Conflict(ResponseMessagesValues.USER_ALREADY_EXIST)
+            raise error_handling.Conflict(e.args[0])
         except Exception as e:
             db_client.session.expire_all()
             db_client.session.rollback()
@@ -40,15 +41,16 @@ class SQLBaseModel(DeclarativeBase):
 
     @classmethod
     @manage_db_exceptions
-    def push_objects(cls, objects):
-        db_client.session.add_all(objects)
+    @expire_all_objects
+    def push_object(cls, obj):
+        db_client.session.add(obj)
         db_client.session.commit()
 
     @classmethod
     @manage_db_exceptions
-    def push_object(cls, obj):
-        db_client.session.add(obj)
-        db_client.session.commit()
+    @expire_all_objects
+    def refresh_object(cls, obj):
+        db_client.session.refresh(obj)
 
     @classmethod
     @manage_db_exceptions

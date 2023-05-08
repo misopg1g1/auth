@@ -20,14 +20,15 @@ def create_user(new_user_schema: CreateUserSchema, token: str = Depends(common.t
     new_user_dict = dict(filter(lambda kv: kv[0] not in ["verify_password", "requester_user_password"],
                                 new_user_schema.dict().items()))
     new_user_instance = models.User(**new_user_dict)
-    id = str(uuid.uuid4())
-    new_user_instance.id = id
+    # id = str(uuid.uuid4())
+    # new_user_instance.id = id
     if new_user_schema.password != new_user_schema.verify_password:
         raise common.error_handling.Conflict(common.response_messages.ResponseMessagesValues.PASSWORD_MISSMATCH)
     new_user_instance.verify_identity(token)
     new_user_instance.encrypt_pass()
     models.User.push_object(new_user_instance)
-    return {"id": id}
+    models.User.refresh_object(new_user_instance)
+    return new_user_instance.dict()
 
 
 @session_router.delete("/delete/{user_id}")
