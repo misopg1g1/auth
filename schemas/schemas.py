@@ -43,7 +43,7 @@ class CreateUserSchema(LoginUserSchema):
 
 
 class UserSchemaWithoutPassword(pydantic.BaseModel):
-    id: typing.Optional[int]
+    id: typing.Optional[str]
     created_at: typing.Optional[datetime.datetime]
     updated_at: typing.Optional[datetime.datetime]
     user: str

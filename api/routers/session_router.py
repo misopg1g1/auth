@@ -8,6 +8,7 @@ import schemas
 from schemas import LoginUserSchema, CreateUserSchema
 
 import json
+import uuid
 
 from fastapi import APIRouter, Depends, Response
 
@@ -19,12 +20,27 @@ def create_user(new_user_schema: CreateUserSchema, token: str = Depends(common.t
     new_user_dict = dict(filter(lambda kv: kv[0] not in ["verify_password", "requester_user_password"],
                                 new_user_schema.dict().items()))
     new_user_instance = models.User(**new_user_dict)
+    # id = str(uuid.uuid4())
+    # new_user_instance.id = id
     if new_user_schema.password != new_user_schema.verify_password:
         raise common.error_handling.Conflict(common.response_messages.ResponseMessagesValues.PASSWORD_MISSMATCH)
     new_user_instance.verify_identity(token)
     new_user_instance.encrypt_pass()
     models.User.push_object(new_user_instance)
-    return {"msg": f'El usuario {new_user_instance.user} fue creado exitosamente.'}
+    models.User.refresh_object(new_user_instance)
+    return new_user_instance.dict()
+
+
+@session_router.delete("/delete/{user_id}")
+def delete_user(user_id: str, response: Response, token: str = Depends(common.token_schema)):
+    target_instance: typing.Optional[models.User] = models.User.query_by_kwargs(first_match=True, id=user_id)
+    if not target_instance:
+        raise common.error_handling.ObjectNotFound(common.response_messages.ResponseMessagesValues.OBJECT_NOT_FOUND)
+    if target_instance.id == helpers.decode_token(token).get("id"):
+        raise common.error_handling.NotAllowed(common.response_messages.ResponseMessagesValues.CANNOT_DELETE_SAME_USER)
+    target_instance.verify_identity(token)
+    if models.User.delete_by_kwargs(first_match=True, id=user_id):
+        response.status_code = 204
 
 
 @session_router.get("/refresh_token")
@@ -49,7 +65,7 @@ def verify_token(resp: Response, token: str = Depends(common.token_schema)):
     if (user_id := token_payload.get("id", None)) and \
             (user_instance := models.User.query_by_kwargs(first_match=True, id=user_id)):
         user_instance.verify_identity(token)
-        resp.status_code = 204
+        return json.loads(user_instance.json(exclude={'password'}))
     else:
         raise common.error_handling.ObjectNotFound(common.response_messages.ResponseMessagesValues.OBJECT_NOT_FOUND)
 

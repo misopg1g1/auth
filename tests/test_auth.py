@@ -1,13 +1,14 @@
+from sqlalchemy.orm import declarative_base
+
 import schemas
 import api
 import models
 import helpers
 
-from config.db_client import db_client
-
 import bcrypt
 import json
 
+from config.db_client import db_client
 from fastapi.testclient import TestClient
 
 
@@ -28,6 +29,8 @@ class TestClassLogin:
 
         resp = client.post("/session/login", json=dict_login_instance_schema)
         assert resp.status_code == 200
+        declarative_base().metadata.drop_all(bind=db_client.engine)
+        db_client.session.commit()
 
     def test_unauthorized(self):
         client = TestClient(api.create_app())
@@ -44,6 +47,10 @@ class TestClassLogin:
         dict_login_instance_schema['hash'] = helpers.encrypt_hash(raw_hash)
         resp = client.post("/session/login", json=dict_login_instance_schema)
         assert resp.status_code == 401
+        declarative_base().metadata.drop_all(bind=db_client.engine)
+        db_client.session.commit()
+
+
 
     def test_forbidden(self):
         client = TestClient(api.create_app())
@@ -61,6 +68,9 @@ class TestClassLogin:
         dict_login_instance_schema['user'] = 'user2'
         resp = client.post("/session/login", json=dict_login_instance_schema)
         assert resp.status_code == 403
+        declarative_base().metadata.drop_all(bind=db_client.engine)
+        db_client.session.commit()
+
 
 
 #
@@ -86,9 +96,10 @@ class TestClassCreateUser:
         raw_hash = helpers.get_hash(user_to_add)
         user_to_add['hash'] = helpers.encrypt_hash(raw_hash)
         resp = client.post("/session/create_user", json=user_to_add, headers=headers)
-        resp_msg = resp.json().get("msg", None)
         assert resp.status_code == 200
-        assert resp_msg == f'El usuario user2 fue creado exitosamente.'
+        declarative_base().metadata.drop_all(bind=db_client.engine)
+        db_client.session.commit()
+
 
     def test_conflict(self):
         client = TestClient(api.create_app())
@@ -116,6 +127,9 @@ class TestClassCreateUser:
         user_to_add['hash'] = helpers.encrypt_hash(raw_hash)
         resp = client.post("/session/create_user", json=user_to_add, headers=headers)
         assert resp.status_code == 409
+        declarative_base().metadata.drop_all(bind=db_client.engine)
+        db_client.session.commit()
+
 
     def test_unauthorized(self):
         client = TestClient(api.create_app())
@@ -143,6 +157,9 @@ class TestClassCreateUser:
         user_to_add['hash'] = helpers.encrypt_hash(raw_hash)
         resp = client.post("/session/create_user", json=user_to_add, headers=headers)
         assert resp.status_code == 401
+        declarative_base().metadata.drop_all(bind=db_client.engine)
+        db_client.session.commit()
+
 
 
 class TestClassRefreshToken:
@@ -166,6 +183,9 @@ class TestClassRefreshToken:
         resp_msg = resp.json().get("access_token", None)
         assert resp.status_code == 200
         assert resp_msg == token
+        declarative_base().metadata.drop_all(bind=db_client.engine)
+        db_client.session.commit()
+
 
 
 class TestClassVerifyRoles:
@@ -189,6 +209,9 @@ class TestClassVerifyRoles:
         payload["hash"] = helpers.encrypt_hash(helpers.get_hash(payload))
         resp = client.post("/session/verify_roles", json=payload, headers=headers)
         assert resp.status_code == 204
+        declarative_base().metadata.drop_all(bind=db_client.engine)
+        db_client.session.commit()
+
 
     def test_forbidden(self):
         client = TestClient(api.create_app())
@@ -211,6 +234,9 @@ class TestClassVerifyRoles:
         payload["hash"] = helpers.encrypt_hash(helpers.get_hash(payload))
         resp = client.post("/session/verify_roles", json=payload, headers=headers)
         assert resp.status_code == 403
+        declarative_base().metadata.drop_all(bind=db_client.engine)
+        db_client.session.commit()
+
 
 
 class TestClassVerifyToken:
@@ -231,7 +257,10 @@ class TestClassVerifyToken:
             "Authorization": f"Bearer {token}"
         }
         resp = client.get("/session/verify_token", headers=headers)
-        assert resp.status_code == 204
+        assert resp.status_code == 200
+        declarative_base().metadata.drop_all(bind=db_client.engine)
+        db_client.session.commit()
+
 
     def test_unauthorized(self):
         client = TestClient(api.create_app())
@@ -253,3 +282,6 @@ class TestClassVerifyToken:
         }
         resp = client.get("/session/verify_token", headers=headers)
         assert resp.status_code == 401
+        declarative_base().metadata.drop_all(bind=db_client.engine)
+        db_client.session.commit()
+
