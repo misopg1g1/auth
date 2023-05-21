@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+
+  db:
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=my-database
+      - POSTGRES_USER=db-username
+      - POSTGRES_PASSWORD=db-password
+
+  auth:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      ports:
+        - 3002:3002
+      environment:
+        - DB_DIALECT=postgresql
+        - DB_DRIVER=psycopg2
+        - DB_HOST=db
+        - DB_NAME=my-database
+        - DB_PASSWORD=db-password
+        - DB_PORT=5432
+        - DB_USERNAME=db-username
+        - ENCRYPTION_KEY_SECRET=encryption-key
+      depends_on:
+        - db
