@@ -1,4 +1,4 @@
-# Guía para ejecutar el sidecar
+# Guía para ejecutar el micro de autenticación/autorización
 
 ## Requisitos previos
 
